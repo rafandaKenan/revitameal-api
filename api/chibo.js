@@ -10,11 +10,12 @@ const genAI = new GoogleGenerativeAI(API_KEY);
 const model = genAI.getGenerativeModel({ model: "gemini-pro" });
 
 export default async function handler(request, response) {
-  // --- Tambahkan header CORS ini ---
+  // Tambahkan header CORS ini untuk mengizinkan permintaan dari domain lain
   response.setHeader('Access-Control-Allow-Origin', '*');
   response.setHeader('Access-Control-Allow-Methods', 'POST,OPTIONS');
   response.setHeader('Access-Control-Allow-Headers', 'Content-Type');
 
+  // Handle preflight request
   if (request.method === 'OPTIONS') {
     return response.status(200).end();
   }
