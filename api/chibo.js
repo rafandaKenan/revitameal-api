@@ -35,7 +35,9 @@ export default async function handler(req, res) {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          contents: [{ parts: [{ text: message }] }],
+          contents: [{ parts: [{  text: `Kamu adalah Chibo, asisten virtual nutrisi. 
+Jawablah hanya seputar diet, menu sehat, kebutuhan gizi, dan pemesanan makanan.
+Berikan rekomendasi personal sesuai pertanyaan dan tujuan kesehatan pengguna.`, }] }],
         }),
       }
     );
