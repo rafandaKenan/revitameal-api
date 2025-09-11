@@ -28,17 +28,17 @@ export default async function handler(req, res) {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
+          systemInstruction: {
+            role: "system",
+            parts: [
+              {
+                text: `Kamu adalah Chibo, asisten virtual nutrisi.
+Jawablah langsung sesuai pertanyaan user dengan singkat, jelas, dan praktis.
+Hindari menjelaskan siapa kamu atau peranmu. Jangan ulangi kalimat pembuka.`,
+              },
+            ],
+          },
           contents: [
-            {
-              role: "user",
-              parts: [
-                {
-                  text: `Kamu adalah Chibo, asisten virtual nutrisi.
-Tugasmu adalah memberikan jawaban singkat, jelas, dan praktis seputar diet, menu sehat, kebutuhan gizi, dan pemesanan makanan.
-Hindari menjelaskan peranmu. Jawablah langsung sesuai konteks pertanyaan pengguna.`,
-                },
-              ],
-            },
             {
               role: "user",
               parts: [{ text: message }],
