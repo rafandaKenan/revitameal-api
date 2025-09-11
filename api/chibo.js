@@ -1,10 +1,9 @@
 export default async function handler(req, res) {
-  // 🔹 Tambahin dulu header CORS
+  // ✅ Tambahin CORS biar bisa diakses dari React kamu
   res.setHeader("Access-Control-Allow-Origin", "*");
   res.setHeader("Access-Control-Allow-Methods", "POST, OPTIONS");
   res.setHeader("Access-Control-Allow-Headers", "Content-Type");
 
-  // 🔹 Kalau request OPTIONS (preflight), langsung kasih 200
   if (req.method === "OPTIONS") {
     return res.status(200).end();
   }
@@ -17,8 +16,7 @@ export default async function handler(req, res) {
     const { message } = req.body;
 
     const geminiRes = await fetch(
-      "https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=" +
-        process.env.GEMINI_API_KEY,
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=${process.env.GEMINI_API_KEY}`,
       {
         method: "POST",
         headers: { "Content-Type": "application/json" },
