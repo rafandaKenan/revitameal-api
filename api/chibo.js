@@ -11,22 +11,15 @@ export default async function handler(req, res) {
         process.env.GEMINI_API_KEY,
       {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          contents: [
-            {
-              parts: [{ text: message }],
-            },
-          ],
+          contents: [{ parts: [{ text: message }] }],
         }),
       }
     );
 
     const data = await geminiRes.json();
 
-    // Ambil teks dari hasil Gemini
     const text =
       data?.candidates?.[0]?.content?.parts?.[0]?.text ||
       "Maaf, tidak ada respon dari Gemini.";
