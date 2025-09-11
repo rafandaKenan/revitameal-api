@@ -1,8 +1,5 @@
-// api/chibo.js
-
 const { GoogleGenerativeAI } = require("@google/generative-ai");
 
-// Ambil kunci API dari lingkungan Vercel
 const API_KEY = process.env.GEMINI_API_KEY;
 
 if (!API_KEY) {
@@ -13,6 +10,15 @@ const genAI = new GoogleGenerativeAI(API_KEY);
 const model = genAI.getGenerativeModel({ model: "gemini-pro" });
 
 export default async function handler(request, response) {
+  // --- Tambahkan header CORS ini ---
+  response.setHeader('Access-Control-Allow-Origin', '*');
+  response.setHeader('Access-Control-Allow-Methods', 'POST,OPTIONS');
+  response.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+
+  if (request.method === 'OPTIONS') {
+    return response.status(200).end();
+  }
+
   if (request.method !== 'POST') {
     return response.status(405).json({ error: "Method not allowed" });
   }
