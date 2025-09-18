@@ -1,57 +1,34 @@
+// /pages/api/createPayment.js (Next.js / Vercel Function)
 export default async function handler(req, res) {
-  res.setHeader("Access-Control-Allow-Origin", "*");
-  res.setHeader("Access-Control-Allow-Methods", "POST, OPTIONS");
-  res.setHeader("Access-Control-Allow-Headers", "Content-Type");
-
-  if (req.method === "OPTIONS") {
-    return res.status(200).end();
-  }
-
   if (req.method !== "POST") {
     return res.status(405).json({ error: "Method not allowed" });
   }
 
   try {
-    const { total, customer_email } = req.body;
+    const { total, orderId, customer_email } = req.body;
 
-    if (!total) {
-      return res.status(400).json({ error: "Total amount is required" });
-    }
+    // 🔑 ambil API key Mayar dari environment variable
+    const MAYAR_API_KEY = process.env.MAYAR_API_KEY;
 
-    if (!process.env.MAYAR_SECRET_KEY) {
-      return res
-        .status(500)
-        .json({ error: "Server misconfigured: API key missing." });
-    }
-
-    const mayarRes = await fetch("https://api.mayar.id/v1/payment-links", {
+    // panggil Mayar API
+    const response = await fetch("https://api.mayar.id/v1/payment-link", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        Authorization: `Bearer ${process.env.MAYAR_SECRET_KEY}`,
+        Authorization: `Bearer ${MAYAR_API_KEY}`,
       },
       body: JSON.stringify({
-        title: "Pesanan LunchBoost",
         amount: total,
-        currency: "IDR",
-        customer_email: customer_email || "default@example.com",
+        order_ref: orderId,
+        customer: { email: customer_email },
+        redirect_url: "https://your-frontend-domain.com/order-history",
       }),
     });
 
-    const data = await mayarRes.json();
-
-    if (!data || data.error) {
-      return res.status(500).json({
-        error: "Mayar API error",
-        details: data.error || "Unknown error",
-      });
-    }
-
-    // response dari Mayar biasanya ada URL payment
+    const data = await response.json();
     return res.status(200).json({ payment: data });
-  } catch (err) {
-    return res
-      .status(500)
-      .json({ error: "Internal server error", details: err.message });
+  } catch (error) {
+    console.error("Error creating payment link:", error);
+    return res.status(500).json({ error: "Internal Server Error" });
   }
 }
