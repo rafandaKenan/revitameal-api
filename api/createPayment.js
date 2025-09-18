@@ -1,8 +1,4 @@
-// api/createPayment.js
-import fetch from "node-fetch";
-
 export default async function handler(req, res) {
-  // ✅ Fix CORS
   res.setHeader("Access-Control-Allow-Credentials", true);
   res.setHeader("Access-Control-Allow-Origin", "*"); 
   res.setHeader("Access-Control-Allow-Methods", "GET,OPTIONS,PATCH,DELETE,POST,PUT");
@@ -12,7 +8,7 @@ export default async function handler(req, res) {
   );
 
   if (req.method === "OPTIONS") {
-    return res.status(200).end(); // preflight
+    return res.status(200).end();
   }
 
   if (req.method !== "POST") {
@@ -32,7 +28,7 @@ export default async function handler(req, res) {
         amount: total,
         currency: "IDR",
         reference: orderId,
-        customer_email: customer_email,
+        customer_email,
         callback_url: "https://your-app.vercel.app/api/webhook",
         success_redirect_url: "https://your-app.vercel.app/success",
         failed_redirect_url: "https://your-app.vercel.app/failed",
