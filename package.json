@@ -9,7 +9,9 @@
   },
   "dependencies": {
     "react": "^18.3.1",
-    "react-dom": "^18.3.1"
+    "react-dom": "^18.3.1",
+    "firebase": "^11.0.0",
+    "lucide-react": "^0.471.0"
   },
   "devDependencies": {
     "@vitejs/plugin-react": "^4.2.1",
