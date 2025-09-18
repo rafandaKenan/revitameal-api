@@ -1,28 +1,18 @@
-// /api/webhook.js
-import admin from "firebase-admin";
-
-if (!admin.apps.length) {
-  admin.initializeApp({
-    credential: admin.credential.cert(JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT))
-  });
-}
-
-const db = admin.firestore();
-
+// api/webhook.js
 export default async function handler(req, res) {
+  if (req.method !== "POST") {
+    return res.status(405).json({ message: "Method Not Allowed" });
+  }
+
   try {
-    const event = req.body;
+    const { reference, status } = req.body;
 
-    if (event.status === "paid") {
-      await db.collection("orders").doc(event.reference_id).update({
-        status: "paid",
-        paid_at: new Date()
-      });
-    }
+    // TODO: update status di Firestore (orders/{reference})
+    console.log("Webhook Mayar:", reference, status);
 
-    res.status(200).json({ received: true });
-  } catch (err) {
-    console.error("Webhook error:", err);
-    res.status(500).json({ error: "Webhook gagal" });
+    return res.status(200).json({ message: "Webhook diterima" });
+  } catch (error) {
+    console.error("Error webhook:", error);
+    return res.status(500).json({ message: "Gagal memproses webhook" });
   }
 }
