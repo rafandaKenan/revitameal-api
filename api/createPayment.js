@@ -1,43 +1,48 @@
-export default async function handler(req, res) {
-  // Handle preflight
-  if (req.method === "OPTIONS") {
-    return res.status(200).end();
+const axios = require('axios');
+
+module.exports = async (req, res) => {
+  // Tangani permintaan preflight (OPTIONS)
+  if (req.method === 'OPTIONS') {
+    res.status(200).end();
+    return;
   }
 
-  if (req.method !== "POST") {
-    return res.status(405).json({ error: "Method not allowed" });
+  // Hanya izinkan metode POST
+  if (req.method !== 'POST') {
+    return res.status(405).send('Method Not Allowed');
+  }
+
+  const MAYAR_SECRET_KEY = process.env.MAYAR_SECRET_KEY; // Gunakan .env atau Vercel Environment Variables
+  const { amount, description, customer_name, customer_email } = req.body;
+
+  if (!MAYAR_SECRET_KEY) {
+    return res.status(500).json({ error: 'MAYAR_SECRET_KEY is not set.' });
   }
 
   try {
-    const { total, orderId, customer_email } = req.body;
-
-    if (!total || !orderId || !customer_email) {
-      return res.status(400).json({ error: "Missing required fields" });
-    }
-
-    // Request ke Mayar API
-    const response = await fetch("https://app.mayar.id/api/v1/invoice", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${process.env.MAYAR_API_KEY}`,
+    const response = await axios.post(
+      'https://api.mayar.id/payment/create',
+      {
+        amount: amount,
+        description: description,
+        customer_name: customer_name,
+        customer_email: customer_email,
+        return_url: 'http://localhost:5173/success', // URL setelah pembayaran berhasil
+        // Tambahkan data lain jika diperlukan
       },
-      body: JSON.stringify({
-        total,
-        reference_id: orderId,
-        customer_email,
-      }),
-    });
+      {
+        headers: {
+          'Authorization': `Bearer ${MAYAR_SECRET_KEY}`,
+          'Content-Type': 'application/json'
+        }
+      }
+    );
 
-    const data = await response.json();
+    const redirectUrl = response.data.data.redirect_url;
+    res.status(200).json({ redirect_url: redirectUrl });
 
-    if (!response.ok) {
-      return res.status(response.status).json({ error: data });
-    }
-
-    return res.status(200).json(data);
   } catch (error) {
-    console.error("Payment API Error:", error);
-    return res.status(500).json({ error: "Internal server error" });
+    console.error('Mayar API Error:', error.response ? error.response.data : error.message);
+    res.status(500).json({ error: 'Failed to create payment.' });
   }
-}
+};
