@@ -1,17 +1,18 @@
 export default async function handler(req, res) {
-  res.setHeader("Access-Control-Allow-Credentials", true);
-  res.setHeader("Access-Control-Allow-Origin", "*"); 
+  // CORS headers
+  res.setHeader("Access-Control-Allow-Origin", "*");
   res.setHeader("Access-Control-Allow-Methods", "GET,POST,OPTIONS");
-  res.setHeader("Access-Control-Allow-Headers", "Content-Type, Authorization");
   res.setHeader(
     "Access-Control-Allow-Headers",
-    "X-CSRF-Token, X-Requested-With, Accept, Accept-Version, Content-Length, Content-MD5, Content-Type, Date, X-Api-Version, Authorization"
+    "Content-Type, Authorization, X-CSRF-Token, X-Requested-With, Accept, Accept-Version, Content-Length, Content-MD5, Date, X-Api-Version"
   );
 
+  // Preflight
   if (req.method === "OPTIONS") {
     return res.status(200).end();
   }
 
+  // Only allow POST
   if (req.method !== "POST") {
     return res.status(405).json({ message: "Method Not Allowed" });
   }
@@ -30,9 +31,9 @@ export default async function handler(req, res) {
         currency: "IDR",
         reference: orderId,
         customer_email,
-        callback_url: "https://your-app.vercel.app/api/webhook",
-        success_redirect_url: "https://your-app.vercel.app/success",
-        failed_redirect_url: "https://your-app.vercel.app/failed",
+        callback_url: "https://revitameal-chibo-1ov3xfix4-ackermanrafandra-9111s-projects.vercel.app/api/webhook",
+        success_redirect_url: "https://revitameal-chibo-1ov3xfix4-ackermanrafandra-9111s-projects.vercel.app/success",
+        failed_redirect_url: "https://revitameal-chibo-1ov3xfix4-ackermanrafandra-9111s-projects.vercel.app/failed",
       }),
     });
 
