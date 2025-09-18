@@ -1,18 +1,30 @@
 const axios = require('axios');
+const cors = require('cors'); // Tambahkan baris ini
+
+// Konfigurasi CORS
+const corsOptions = {
+  origin: 'http://localhost:5173',
+  methods: ['POST', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
+};
 
 module.exports = async (req, res) => {
-  // Tangani permintaan preflight (OPTIONS)
-  if (req.method === 'OPTIONS') {
-    res.status(200).end();
-    return;
-  }
+  // Jalankan middleware cors terlebih dahulu
+  await new Promise((resolve, reject) => {
+    cors(corsOptions)(req, res, (err) => {
+      if (err) {
+        return reject(err);
+      }
+      resolve();
+    });
+  });
 
-  // Hanya izinkan metode POST
+  // Logika API utama
   if (req.method !== 'POST') {
     return res.status(405).send('Method Not Allowed');
   }
 
-  const MAYAR_SECRET_KEY = process.env.MAYAR_SECRET_KEY; // Gunakan .env atau Vercel Environment Variables
+  const MAYAR_SECRET_KEY = process.env.MAYAR_SECRET_KEY;
   const { amount, description, customer_name, customer_email } = req.body;
 
   if (!MAYAR_SECRET_KEY) {
@@ -27,8 +39,7 @@ module.exports = async (req, res) => {
         description: description,
         customer_name: customer_name,
         customer_email: customer_email,
-        return_url: 'http://localhost:5173/success', // URL setelah pembayaran berhasil
-        // Tambahkan data lain jika diperlukan
+        return_url: 'http://localhost:5173/success',
       },
       {
         headers: {
