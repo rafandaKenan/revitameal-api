@@ -1,22 +1,16 @@
 {
-  "name": "revitameal-chibo",
+  "name": "revitameal-backend",
   "version": "1.0.0",
-  "private": true,
   "scripts": {
-    "dev": "vite",
-    "build": "vite build",
-    "preview": "vite preview"
+    "dev": "echo 'This is a backend API - no build needed'",
+    "build": "echo 'No build step for backend'",
+    "start": "echo 'Serverless functions do not need start script'"
   },
   "dependencies": {
-    "react": "^18.3.1",
-    "react-dom": "^18.3.1",
-    "axios": "^1.6.8", 
-    "cors": "^2.8.5", 
-    "firebase": "^11.0.0",
-    "lucide-react": "^0.471.0"
+    "axios": "^1.6.8"
   },
-  "devDependencies": {
-    "@vitejs/plugin-react": "^4.2.1",
-    "vite": "^5.2.0"
+  "devDependencies": {},
+  "engines": {
+    "node": ">=18.x"
   }
 }
