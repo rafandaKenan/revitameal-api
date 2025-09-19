@@ -50,10 +50,9 @@ module.exports = async (req, res) => {
     const mayarData = {
       amount: Number(amount),
       description: description || `Order ${orderId || 'Revitameal'}`,
-      customer_email: customer_email, // ✅ Perbaikan: snake_case
-      customer_name: customer_name || 'Customer', // ✅ Perbaikan: snake_case
-      redirect_url: "https://revitameal-82d2e.web.app/success", // ✅ Perbaikan: snake_case
-      // callback_url: "https://your-domain.com/callback" // optional, ✅ Perbaikan: snake_case
+      customer_email: customer_email, 
+      customer_name: customer_name || 'Customer',
+      redirect_url: "https://revitameal-82d2e.web.app/success",
     };
 
     console.log('🔄 Sending to Mayar:', mayarData);
