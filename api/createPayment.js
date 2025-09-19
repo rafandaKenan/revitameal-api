@@ -46,18 +46,21 @@ module.exports = async (req, res) => {
 
     console.log('📦 Creating payment for order:', orderId);
 
+    // ✅ Perbaikan: Menggunakan payload yang sesuai dokumentasi
     const mayarData = {
       amount: Number(amount),
       description: description || `Order ${orderId || 'Revitameal'}`,
-      customer_email: customer_email, 
-      customer_name: customer_name || 'Customer',
-      redirect_url: "https://revitameal-82d2e.web.app/success",
+      name: customer_name || 'Customer', // ✅ Menggunakan "name"
+      email: customer_email, // ✅ Menggunakan "email"
+      redirectUrl: "https://revitameal-82d2e.web.app/success", // ✅ Menggunakan "redirectUrl"
+      // mobile: "08123456789", // Opsional
     };
 
     console.log('🔄 Sending to Mayar:', mayarData);
 
+    // ✅ Perbaikan: Menggunakan URL API yang benar
     const response = await axios.post(
-      "https://api.mayar.id/hl/v1/payment-links",
+      "https://api.mayar.id/hl/v1/payment/create",
       mayarData,
       {
         headers: {
@@ -71,10 +74,11 @@ module.exports = async (req, res) => {
 
     console.log('✅ Mayar response received');
 
+    // ✅ Response format sesuai dokumentasi
     res.status(200).json({
       success: true,
-      redirect_url: response.data.url,
-      payment_id: response.data.id,
+      redirect_url: response.data.data.link, // ✅ Perbaikan: Menggunakan 'data.link'
+      payment_id: response.data.data.id,
       order_id: orderId,
       raw: response.data
     });
