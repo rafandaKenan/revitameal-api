@@ -8,9 +8,17 @@
   ],
   "routes": [
     {
-      "src": "/api/(.*)",
-      "dest": "/api/$1",
-      "methods": ["GET", "POST", "OPTIONS"]
+      "src": "/api/payment",
+      "dest": "/api/payment.js"
+    },
+    {
+      "src": "/api/payment-callback",
+      "dest": "/api/payment-callback.js",
+      "methods": ["POST"]
+    },
+    {
+      "src": "/(.*)",
+      "dest": "/dist/$1"
     }
   ],
   "headers": [
@@ -19,19 +27,15 @@
       "headers": [
         {
           "key": "Access-Control-Allow-Origin",
-          "value": "https://revitameal-82d2e.web.app"
+          "value": "http://localhost:5173"
         },
         {
           "key": "Access-Control-Allow-Methods",
-          "value": "POST, OPTIONS, GET"
+          "value": "GET, POST, OPTIONS"
         },
         {
           "key": "Access-Control-Allow-Headers",
-          "value": "Content-Type, Authorization, X-Requested-With"
-        },
-        {
-          "key": "Access-Control-Allow-Credentials",
-          "value": "true"
+          "value": "Content-Type, Authorization"
         }
       ]
     }
