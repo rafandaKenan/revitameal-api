@@ -1,5 +1,5 @@
 const axios = require("axios");
-
+// buat ulang
 module.exports = async (req, res) => {
   // Set CORS headers
   const allowedOrigins = [
