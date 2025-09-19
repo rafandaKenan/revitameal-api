@@ -11,6 +11,6 @@
       "src": "/api/(.*)",
       "dest": "/api/$1"
     }
-  ]
+  ],
+  "outputDirectory": "api"
 }
-
