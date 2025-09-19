@@ -10,38 +10,28 @@
     {
       "src": "/api/(.*)",
       "dest": "/api/$1",
-      "methods": ["GET", "POST", "OPTIONS", "HEAD"]
+      "methods": ["GET", "POST", "OPTIONS"]
     }
   ],
-  "functions": {
-    "api/*.js": {
-      "maxDuration": 30,
-      "memory": 1024
-    }
-  },
   "headers": [
     {
       "source": "/api/(.*)",
       "headers": [
         {
           "key": "Access-Control-Allow-Origin",
-          "value": "http://localhost:5173"
+          "value": "https://revitameal-82d2e.web.app"
         },
         {
           "key": "Access-Control-Allow-Methods",
-          "value": "GET, POST, OPTIONS, PUT, DELETE"
+          "value": "POST, OPTIONS, GET"
         },
         {
           "key": "Access-Control-Allow-Headers",
-          "value": "X-CSRF-Token, X-Requested-With, Accept, Accept-Version, Content-Length, Content-MD5, Content-Type, Date, X-Api-Version, Authorization"
+          "value": "Content-Type, Authorization, X-Requested-With"
         },
         {
           "key": "Access-Control-Allow-Credentials",
           "value": "true"
-        },
-        {
-          "key": "Access-Control-Max-Age",
-          "value": "86400"
         }
       ]
     }
