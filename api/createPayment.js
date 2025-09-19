@@ -4,7 +4,7 @@ module.exports = async (req, res) => {
   // Set CORS headers
   const allowedOrigins = [
     'http://localhost:5173',
-    'http://localhost:5174', 
+    'http://localhost:5174',
     'https://revitameal-82d2e.web.app'
   ];
   
@@ -50,17 +50,17 @@ module.exports = async (req, res) => {
     const mayarData = {
       amount: Number(amount),
       description: description || `Order ${orderId || 'Revitameal'}`,
-      customerEmail: customer_email,      // ✅ camelCase
-      customerName: customer_name || 'Customer',  // ✅ camelCase  
-      redirectUrl: "https://revitameal-82d2e.web.app/success",
-      // callbackUrl: "https://your-domain.com/callback" // optional
+      customer_email: customer_email, // ✅ Perbaikan: snake_case
+      customer_name: customer_name || 'Customer', // ✅ Perbaikan: snake_case
+      redirect_url: "https://revitameal-82d2e.web.app/success", // ✅ Perbaikan: snake_case
+      // callback_url: "https://your-domain.com/callback" // optional, ✅ Perbaikan: snake_case
     };
 
     console.log('🔄 Sending to Mayar:', mayarData);
 
     // ✅ ENDPOINT YANG BENAR
     const response = await axios.post(
-      "https://api.mayar.id/v1/payment-links",  // ✅ ada "s" di payment-links
+      "https://api.mayar.id/v1/payment-links",
       mayarData,
       {
         headers: {
@@ -77,10 +77,10 @@ module.exports = async (req, res) => {
     // ✅ Response format sesuai dokumentasi
     res.status(200).json({
       success: true,
-      redirect_url: response.data.url,  // ✅ dari response Mayar
+      redirect_url: response.data.url,
       payment_id: response.data.id,
       order_id: orderId,
-      raw: response.data  // untuk debugging
+      raw: response.data
     });
 
   } catch (error) {
