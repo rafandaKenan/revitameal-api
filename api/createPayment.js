@@ -1,11 +1,11 @@
 const axios = require("axios");
 
 module.exports = async (req, res) => {
-  // Set CORS headers untuk localhost development
+  // Set CORS headers
   const allowedOrigins = [
     'http://localhost:5173',
-    'http://localhost:5174',
-    'https://revitameal-82d2e.web.app' // tambahkan domain production jika ada
+    'http://localhost:5174', 
+    'https://revitameal-82d2e.web.app'
   ];
   
   const origin = req.headers.origin;
@@ -16,14 +16,13 @@ module.exports = async (req, res) => {
   res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Requested-With');
   res.setHeader('Access-Control-Allow-Credentials', 'true');
-  res.setHeader('Access-Control-Max-Age', '86400'); // 24 jam
+  res.setHeader('Access-Control-Max-Age', '86400');
 
   // Handle preflight request
   if (req.method === 'OPTIONS') {
     return res.status(200).end();
   }
 
-  // Hanya izinkan metode POST
   if (req.method !== "POST") {
     return res.status(405).json({ error: "Method Not Allowed" });
   }
@@ -31,59 +30,78 @@ module.exports = async (req, res) => {
   try {
     const MAYAR_SECRET_KEY = process.env.MAYAR_SECRET_KEY;
     if (!MAYAR_SECRET_KEY) {
-      return res.status(500).json({ error: "MAYAR_SECRET_KEY tidak ditemukan di environment" });
+      console.error('❌ MAYAR_SECRET_KEY not found');
+      return res.status(500).json({ error: "Server configuration error" });
     }
 
-    const { amount, description, customer_name, customer_email } = req.body;
+    const { amount, description, customer_name, customer_email, orderId } = req.body;
 
     // Validasi input
     if (!amount || !customer_email) {
-      return res.status(400).json({ error: "Amount dan customer_email diperlukan" });
+      return res.status(400).json({ 
+        error: "Amount dan customer email diperlukan",
+        details: req.body
+      });
     }
 
+    console.log('📦 Creating payment for order:', orderId);
+
+    // ✅ FORMAT YANG BENAR sesuai dokumentasi Mayar
+    const mayarData = {
+      amount: Number(amount),
+      description: description || `Order ${orderId || 'Revitameal'}`,
+      customerEmail: customer_email,      // ✅ camelCase
+      customerName: customer_name || 'Customer',  // ✅ camelCase  
+      redirectUrl: "https://revitameal-82d2e.web.app/success",
+      // callbackUrl: "https://your-domain.com/callback" // optional
+    };
+
+    console.log('🔄 Sending to Mayar:', mayarData);
+
+    // ✅ ENDPOINT YANG BENAR
     const response = await axios.post(
-      "https://api.mayar.id/v1/payment-link",
-      {
-        amount: Number(amount),
-        description: description || "Pesanan Revitameal",
-        customer_name: customer_name || "Customer",
-        customer_email,
-        return_url: "https://revitameal-82d2e.web.app/success",
-        callback_url: "https://revitameal-82d2e.web.app/api/payment-callback" // optional
-      },
+      "https://api.mayar.id/v1/payment-links",  // ✅ ada "s" di payment-links
+      mayarData,
       {
         headers: {
-          Authorization: `Bearer ${MAYAR_SECRET_KEY}`,
+          "Authorization": `Bearer ${MAYAR_SECRET_KEY}`,
           "Content-Type": "application/json",
+          "Accept": "application/json"
         },
-        timeout: 10000 // timeout 10 detik
+        timeout: 15000
       }
     );
 
+    console.log('✅ Mayar response received');
+
+    // ✅ Response format sesuai dokumentasi
     res.status(200).json({
       success: true,
-      redirect_url: response.data.url || response.data.payment_url,
+      redirect_url: response.data.url,  // ✅ dari response Mayar
       payment_id: response.data.id,
-      raw: response.data
+      order_id: orderId,
+      raw: response.data  // untuk debugging
     });
 
   } catch (error) {
-    console.error("Error dari API Mayar:", error.response?.data || error.message);
+    console.error("❌ Mayar API Error:");
     
     if (error.response) {
-      // Error dari Mayar API
+      console.log('Status:', error.response.status);
+      console.log('Data:', error.response.data);
+      console.log('Headers:', error.response.headers);
+      
       res.status(error.response.status).json({
-        error: "Gagal membuat pembayaran",
+        error: "Payment creation failed",
         detail: error.response.data,
         status: error.response.status
       });
     } else if (error.code === 'ECONNABORTED') {
-      // Timeout error
       res.status(408).json({
-        error: "Timeout - API Mayar tidak merespons"
+        error: "Timeout - Mayar API tidak merespons"
       });
     } else {
-      // Other errors
+      console.log('Error message:', error.message);
       res.status(500).json({
         error: "Internal server error",
         detail: error.message
