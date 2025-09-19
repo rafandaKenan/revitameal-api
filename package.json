@@ -1,10 +1,11 @@
 {
   "name": "revitameal-backend",
   "version": "1.0.0",
+  "description": "Backend serverless function for Revitameal using Mayar API",
+  "main": "api/createPayment.js",
   "scripts": {
-    "dev": "echo 'This is a backend API - no build needed'",
     "build": "echo 'No build step for backend'",
-    "start": "echo 'Serverless functions do not need start script'"
+    "start": "vercel dev"
   },
   "dependencies": {
     "axios": "^1.6.8"
