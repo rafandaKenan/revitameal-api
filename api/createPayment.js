@@ -1,9 +1,35 @@
 const axios = require("axios");
+const cors = require('cors');
+
+// Cek apakah lingkungan saat ini adalah development (localhost)
+const isDevelopment = process.env.NODE_ENV !== 'production';
+
+// Middleware CORS hanya untuk development
+const devCorsMiddleware = cors({
+  origin: 'http://localhost:5173', 
+  methods: ['POST', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
+});
 
 module.exports = async (req, res) => {
-  // HAPUS SEMUA KODE CORS DI SINI!
-  // Vercel akan menanganinya dari vercel.json
+  // Jalankan middleware CORS hanya saat di lingkungan development
+  if (isDevelopment) {
+    await new Promise((resolve, reject) => {
+      devCorsMiddleware(req, res, (err) => {
+        if (err) {
+          return reject(err);
+        }
+        resolve();
+      });
+    });
+  }
 
+  // Tangani permintaan OPTIONS dari browser (preflight request)
+  if (req.method === 'OPTIONS') {
+    return res.status(200).send('OK');
+  }
+
+  // Hanya izinkan metode POST
   if (req.method !== "POST") {
     return res.status(405).json({ error: "Method Not Allowed" });
   }
