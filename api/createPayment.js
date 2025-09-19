@@ -4,6 +4,7 @@ module.exports = async (req, res) => {
   const allowedOrigins = [
     "http://localhost:5173",
     "https://revitameal-82d2e.web.app",
+    "https://revitameal-chibo-1ov3xfix4-ackermanrafandra-9111s-projects.vercel.app",
   ];
 
   const origin = req.headers.origin;
@@ -24,13 +25,17 @@ module.exports = async (req, res) => {
 
   try {
     const MAYAR_SECRET_KEY = process.env.MAYAR_SECRET_KEY;
+    if (!MAYAR_SECRET_KEY) {
+      return res.status(500).json({ error: "Missing MAYAR_SECRET_KEY in env" });
+    }
+
     const { amount, description, customer_name, customer_email } = req.body;
 
     const response = await axios.post(
-      "https://api.mayar.id/v1/payment",
+      "https://api.mayar.id/v1/payment-link", // ✅ pastikan endpoint benar
       {
         amount,
-        description,
+        description: description || "Revitameal Order",
         customer_name,
         customer_email,
         return_url: "https://revitameal-82d2e.web.app/success",
@@ -43,13 +48,16 @@ module.exports = async (req, res) => {
       }
     );
 
-    // Normalisasi response → frontend selalu terima redirect_url
+    // Response sudah JSON → kirim ke frontend
     res.status(200).json({
       redirect_url: response.data.payment_url || response.data.redirect_url,
-      raw: response.data, // debug: seluruh respon dari Mayar
+      raw: response.data, // debug
     });
   } catch (error) {
     console.error("Mayar API Error:", error.response?.data || error.message);
-    res.status(500).json({ error: "Payment creation failed", detail: error.response?.data });
+    res.status(500).json({
+      error: "Payment creation failed",
+      detail: error.response?.data || error.message,
+    });
   }
 };
