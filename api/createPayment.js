@@ -15,8 +15,9 @@ module.exports = async (req, res) => {
   res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
   res.setHeader("Access-Control-Allow-Headers", "Content-Type, Authorization");
 
+  // 🚀 tangani OPTIONS duluan, langsung keluar
   if (req.method === "OPTIONS") {
-    return res.status(200).end();
+    return res.status(200).send("OK");
   }
 
   if (req.method !== "POST") {
@@ -32,7 +33,7 @@ module.exports = async (req, res) => {
     const { amount, description, customer_name, customer_email } = req.body;
 
     const response = await axios.post(
-      "https://api.mayar.id/v1/payment-link", // ✅ pastikan endpoint benar
+      "https://api.mayar.id/v1/payment-link",
       {
         amount,
         description: description || "Revitameal Order",
@@ -48,10 +49,9 @@ module.exports = async (req, res) => {
       }
     );
 
-    // Response sudah JSON → kirim ke frontend
     res.status(200).json({
       redirect_url: response.data.payment_url || response.data.redirect_url,
-      raw: response.data, // debug
+      raw: response.data,
     });
   } catch (error) {
     console.error("Mayar API Error:", error.response?.data || error.message);
