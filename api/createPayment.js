@@ -1,24 +1,8 @@
 const axios = require("axios");
 
 module.exports = async (req, res) => {
-  const allowedOrigins = [
-    "http://localhost:5173",
-    "https://revitameal-82d2e.web.app",
-    "https://revitameal-chibo-1ov3xfix4-ackermanrafandra-9111s-projects.vercel.app",
-  ];
-
-  const origin = req.headers.origin;
-  if (allowedOrigins.includes(origin)) {
-    res.setHeader("Access-Control-Allow-Origin", origin);
-  }
-
-  res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
-  res.setHeader("Access-Control-Allow-Headers", "Content-Type, Authorization");
-
-  // 🚀 tangani OPTIONS duluan, langsung keluar
-  if (req.method === "OPTIONS") {
-    return res.status(200).send("OK");
-  }
+  // HAPUS SEMUA KODE CORS DI SINI!
+  // Vercel akan menanganinya dari vercel.json
 
   if (req.method !== "POST") {
     return res.status(405).json({ error: "Method Not Allowed" });
