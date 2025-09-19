@@ -1,59 +1,21 @@
-const axios = require('axios');
-const cors = require('cors'); // Tambahkan baris ini
+export default function handler(req, res) {
+  const allowedOrigins = [
+    "http://localhost:5173",                  // untuk development
+    "https://revitameal-82d2e.web.app"        // untuk production di Firebase Hosting
+  ];
 
-// Konfigurasi CORS
-const corsOptions = {
-  origin: 'http://localhost:5173',
-  methods: ['POST', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization'],
-};
-
-module.exports = async (req, res) => {
-  // Jalankan middleware cors terlebih dahulu
-  await new Promise((resolve, reject) => {
-    cors(corsOptions)(req, res, (err) => {
-      if (err) {
-        return reject(err);
-      }
-      resolve();
-    });
-  });
-
-  // Logika API utama
-  if (req.method !== 'POST') {
-    return res.status(405).send('Method Not Allowed');
+  const origin = req.headers.origin;
+  if (allowedOrigins.includes(origin)) {
+    res.setHeader("Access-Control-Allow-Origin", origin);
   }
 
-  const MAYAR_SECRET_KEY = process.env.MAYAR_SECRET_KEY;
-  const { amount, description, customer_name, customer_email } = req.body;
+  res.setHeader("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS");
+  res.setHeader("Access-Control-Allow-Headers", "Content-Type, Authorization");
 
-  if (!MAYAR_SECRET_KEY) {
-    return res.status(500).json({ error: 'MAYAR_SECRET_KEY is not set.' });
+  if (req.method === "OPTIONS") {
+    return res.status(200).end();
   }
 
-  try {
-    const response = await axios.post(
-      'https://api.mayar.id/payment/create',
-      {
-        amount: amount,
-        description: description,
-        customer_name: customer_name,
-        customer_email: customer_email,
-        return_url: 'http://localhost:5173/success',
-      },
-      {
-        headers: {
-          'Authorization': `Bearer ${MAYAR_SECRET_KEY}`,
-          'Content-Type': 'application/json'
-        }
-      }
-    );
-
-    const redirectUrl = response.data.data.redirect_url;
-    res.status(200).json({ redirect_url: redirectUrl });
-
-  } catch (error) {
-    console.error('Mayar API Error:', error.response ? error.response.data : error.message);
-    res.status(500).json({ error: 'Failed to create payment.' });
-  }
-};
+  // lanjutkan handler API kamu
+  res.status(200).json({ message: "OK" });
+}
