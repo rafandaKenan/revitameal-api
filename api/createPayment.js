@@ -1,32 +1,26 @@
 const axios = require("axios");
-const cors = require('cors');
-
-// Cek apakah lingkungan saat ini adalah development (localhost)
-const isDevelopment = process.env.NODE_ENV !== 'production';
-
-// Middleware CORS hanya untuk development
-const devCorsMiddleware = cors({
-  origin: 'http://localhost:5173', 
-  methods: ['POST', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization'],
-});
 
 module.exports = async (req, res) => {
-  // Jalankan middleware CORS hanya saat di lingkungan development
-  if (isDevelopment) {
-    await new Promise((resolve, reject) => {
-      devCorsMiddleware(req, res, (err) => {
-        if (err) {
-          return reject(err);
-        }
-        resolve();
-      });
-    });
+  // Set CORS headers untuk localhost development
+  const allowedOrigins = [
+    'http://localhost:5173',
+    'http://localhost:5174',
+    'https://revitameal-82d2e.web.app' // tambahkan domain production jika ada
+  ];
+  
+  const origin = req.headers.origin;
+  if (allowedOrigins.includes(origin)) {
+    res.setHeader('Access-Control-Allow-Origin', origin);
   }
+  
+  res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Requested-With');
+  res.setHeader('Access-Control-Allow-Credentials', 'true');
+  res.setHeader('Access-Control-Max-Age', '86400'); // 24 jam
 
-  // Tangani permintaan OPTIONS dari browser (preflight request)
+  // Handle preflight request
   if (req.method === 'OPTIONS') {
-    return res.status(200).send('OK');
+    return res.status(200).end();
   }
 
   // Hanya izinkan metode POST
@@ -37,37 +31,63 @@ module.exports = async (req, res) => {
   try {
     const MAYAR_SECRET_KEY = process.env.MAYAR_SECRET_KEY;
     if (!MAYAR_SECRET_KEY) {
-      return res.status(500).json({ error: "Missing MAYAR_SECRET_KEY in env" });
+      return res.status(500).json({ error: "MAYAR_SECRET_KEY tidak ditemukan di environment" });
     }
 
     const { amount, description, customer_name, customer_email } = req.body;
 
+    // Validasi input
+    if (!amount || !customer_email) {
+      return res.status(400).json({ error: "Amount dan customer_email diperlukan" });
+    }
+
     const response = await axios.post(
       "https://api.mayar.id/v1/payment-link",
       {
-        amount,
-        description: description || "Revitameal Order",
-        customer_name,
+        amount: Number(amount),
+        description: description || "Pesanan Revitameal",
+        customer_name: customer_name || "Customer",
         customer_email,
         return_url: "https://revitameal-82d2e.web.app/success",
+        callback_url: "https://revitameal-82d2e.web.app/api/payment-callback" // optional
       },
       {
         headers: {
           Authorization: `Bearer ${MAYAR_SECRET_KEY}`,
           "Content-Type": "application/json",
         },
+        timeout: 10000 // timeout 10 detik
       }
     );
 
     res.status(200).json({
-      redirect_url: response.data.payment_url || response.data.redirect_url,
-      raw: response.data,
+      success: true,
+      redirect_url: response.data.url || response.data.payment_url,
+      payment_id: response.data.id,
+      raw: response.data
     });
+
   } catch (error) {
-    console.error("Mayar API Error:", error.response?.data || error.message);
-    res.status(500).json({
-      error: "Payment creation failed",
-      detail: error.response?.data || error.message,
-    });
+    console.error("Error dari API Mayar:", error.response?.data || error.message);
+    
+    if (error.response) {
+      // Error dari Mayar API
+      res.status(error.response.status).json({
+        error: "Gagal membuat pembayaran",
+        detail: error.response.data,
+        status: error.response.status
+      });
+    } else if (error.code === 'ECONNABORTED') {
+      // Timeout error
+      res.status(408).json({
+        error: "Timeout - API Mayar tidak merespons"
+      });
+    } else {
+      // Other errors
+      res.status(500).json({
+        error: "Internal server error",
+        detail: error.message
+      });
+    }
   }
 };
