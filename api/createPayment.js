@@ -1,61 +1,38 @@
-const axios = require('axios');
-const cors = require('cors');
-
-// Konfigurasi CORS
-const corsOptions = {
-  origin: (origin, callback) => {
-    const allowedOrigins = [
-      "http://localhost:5173",            // dev
-      "https://revitameal-82d2e.web.app"  // production di Firebase Hosting
-    ];
-    if (!origin || allowedOrigins.includes(origin)) {
-      callback(null, true);
-    } else {
-      callback(new Error("Not allowed by CORS"));
-    }
-  },
-  methods: ['POST', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization'],
-};
+const axios = require("axios");
 
 module.exports = async (req, res) => {
-  // Jalankan middleware CORS
-  await new Promise((resolve, reject) => {
-    cors(corsOptions)(req, res, (err) => {
-      if (err) return reject(err);
-      resolve();
-    });
-  });
+  const allowedOrigins = [
+    "http://localhost:5173",
+    "https://revitameal-82d2e.web.app",
+  ];
 
-  // Tangani permintaan preflight (OPTIONS)
-  if (req.method === 'OPTIONS') {
-    res.status(200).end();
-    return;
+  const origin = req.headers.origin;
+  if (allowedOrigins.includes(origin)) {
+    res.setHeader("Access-Control-Allow-Origin", origin);
   }
 
-  // Hanya izinkan metode POST
-  if (req.method !== 'POST') {
-    return res.status(405).send('Method Not Allowed');
+  res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
+  res.setHeader("Access-Control-Allow-Headers", "Content-Type, Authorization");
+
+  if (req.method === "OPTIONS") {
+    return res.status(200).end();
   }
 
-  // Ambil data dari body request
-  const { amount, description, customer_name, customer_email } = req.body;
-  const MAYAR_SECRET_KEY = process.env.MAYAR_SECRET_KEY; // pakai env di Vercel
-
-  if (!MAYAR_SECRET_KEY) {
-    return res.status(500).json({ error: "MAYAR_SECRET_KEY tidak ditemukan di environment variables" });
+  if (req.method !== "POST") {
+    return res.status(405).json({ error: "Method Not Allowed" });
   }
 
   try {
-    // Request ke Mayar API
+    const MAYAR_SECRET_KEY = process.env.MAYAR_SECRET_KEY;
+    const { amount, description, customer_name, customer_email } = req.body;
+
     const response = await axios.post(
-      "https://app.mayar.id/api/v1/payment/create",
+      "https://api.mayar.id/v1/payment",
       {
         amount,
         description,
         customer_name,
         customer_email,
-        // ganti sesuai domain kamu di prod
         return_url: "https://revitameal-82d2e.web.app/success",
       },
       {
@@ -66,12 +43,13 @@ module.exports = async (req, res) => {
       }
     );
 
-    res.status(200).json(response.data);
-  } catch (error) {
-    console.error("Error membuat payment:", error.response?.data || error.message);
-    res.status(500).json({
-      error: "Gagal membuat payment",
-      details: error.response?.data || error.message,
+    // Normalisasi response → frontend selalu terima redirect_url
+    res.status(200).json({
+      redirect_url: response.data.payment_url || response.data.redirect_url,
+      raw: response.data, // debug: seluruh respon dari Mayar
     });
+  } catch (error) {
+    console.error("Mayar API Error:", error.response?.data || error.message);
+    res.status(500).json({ error: "Payment creation failed", detail: error.response?.data });
   }
 };
