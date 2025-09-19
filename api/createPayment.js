@@ -1,5 +1,5 @@
 const axios = require("axios");
-// buat ulang
+
 module.exports = async (req, res) => {
   // Set CORS headers
   const allowedOrigins = [
@@ -46,7 +46,6 @@ module.exports = async (req, res) => {
 
     console.log('📦 Creating payment for order:', orderId);
 
-    // ✅ FORMAT YANG BENAR sesuai dokumentasi Mayar
     const mayarData = {
       amount: Number(amount),
       description: description || `Order ${orderId || 'Revitameal'}`,
@@ -57,9 +56,8 @@ module.exports = async (req, res) => {
 
     console.log('🔄 Sending to Mayar:', mayarData);
 
-    // ✅ ENDPOINT YANG BENAR
     const response = await axios.post(
-      "https://api.mayar.id/v1/payment-links",
+      "https://api.mayar.id/hl/v1/payment-links",
       mayarData,
       {
         headers: {
@@ -73,7 +71,6 @@ module.exports = async (req, res) => {
 
     console.log('✅ Mayar response received');
 
-    // ✅ Response format sesuai dokumentasi
     res.status(200).json({
       success: true,
       redirect_url: response.data.url,
